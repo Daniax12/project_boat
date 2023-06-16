@@ -1,0 +1,63 @@
+create table boat_type(
+	id_boat_type varchar(50) primary key,
+        name_boat_type varchar(50)
+);
+
+insert into table boat_type values('b1', 'Paquebot');
+insert into table boat_type values('b2', 'Marchandise');
+insert into table boat_type values('b3', 'Peche'); 
+
+-- -------------------------------------------------------------------
+create sequence boat_seq increment by 1;
+
+
+create table boat(
+    id_boat varchar(50) primary key,
+    boat_name varchar(50),
+    id_boat_type varchar(50),
+    profondeur numeric,
+    national int,
+    remorquage_duration numeric,
+    foreign key(id_boat_type) references boat_type(id_boat_type)
+);
+
+insert into boat values('boat_a', 'As de pique', 'b1', 25, 1, 30);
+insert into boat values('boat_b', 'Sept', 'b2', 10, 0, 40);
+insert into boat values('boat_c', 'Treffle', 'b1', 30, 1, 30);
+
+-- -------------------------------------------------------------------------
+create or replace view v_boat_detail as(
+    select boat.*, boat_type.name_boat_type
+    from boat
+    inner join boat_type on boat_type.id_boat_type = boat.id_boat_type
+);
+
+-- -----------------------------------------------------------------------
+'
+create sequence dock_seq increment by 1;
+
+create table dock(
+    id_dock varchar(50) primary key,
+    name_dock varchar(50),
+    profondeur_dock numeric
+);
+
+insert into dock values('QUAI1', 'A11', 15);
+insert into dock values('QUAI2', 'A12', 30);
+insert into dock values('QUAI3', 'A13', 40);
+
+-- -------------------------------------------------------------------
+create sequence escale_seq increment by 1;
+
+create table escale(
+    id_escale varchar(50) primary key,
+    id_boat varchar(50),
+    id_dock varchar(50),
+    debut_prevision timestamp,
+    end_prevision timestamp,
+    rang serial,
+    foreign key(id_boat) references boat(id_boat),
+    foreign key(id_dock) references dock(id_dock)
+);
+
+-- ---------------------------------------------------------------------
