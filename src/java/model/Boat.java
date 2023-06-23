@@ -24,13 +24,13 @@ public class Boat {
     @ColumnField(column = "id_boat_type")
     private String id_boat_type;
     
+    @ColumnField(column = "id_nationality")
+    private String id_nationality;
+    
     private String name_boat_type;
     
     @ColumnField(column = "profondeur")
     private Float profondeur;
-    
-    @ColumnField(column = "national")
-    private Integer national;
     
     @ColumnField(column = "remorquage_duration")
     private Integer remorquage_duration;
@@ -76,14 +76,6 @@ public class Boat {
         this.profondeur = profondeur;
     }
 
-    public Integer getNational() {
-        return national;
-    }
-
-    public void setNational(Integer national) {
-        this.national = national;
-    }
-
     public Integer getRemorquage_duration() {
         return remorquage_duration;
     }
@@ -91,5 +83,12 @@ public class Boat {
     public void setRemorquage_duration(Integer remorquage_duration) {
         this.remorquage_duration = remorquage_duration;
     }
-    
+
+    public String getId_nationality() {
+        return id_nationality;
+    }
+
+    public void setId_nationality(String id_nationality) {
+        this.id_nationality = id_nationality;
+    }
 }

@@ -12,17 +12,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import mapping.BddObject;
-import model.Boat;
-import model.Dock;
+import jakarta.servlet.http.HttpSession;
+import model.Prestation_escale;
+import model.Utilisateur;
 
 /**
  *
  * @author rango
  */
-@WebServlet(name = "Home_ctrl", urlPatterns = {"/Home_ctrl"})
-public class Home_ctrl extends HttpServlet {
+@WebServlet(name = "Add_prestation_ctrl", urlPatterns = {"/Add_prestation_ctrl"})
+public class Add_prestation_ctrl extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -41,10 +40,10 @@ public class Home_ctrl extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet Home_ctrl</title>");            
+            out.println("<title>Servlet Add_prestation_ctrl</title>");            
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet Home_ctrl at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet Add_prestation_ctrl at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -62,19 +61,26 @@ public class Home_ctrl extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-       // processRequest(request, response);
+        PrintWriter out = response.getWriter();
+        String escale_id = request.getParameter("escale_id");
+        String current_dock = request.getParameter("dock_id");
+        String prestation_id = request.getParameter("prestation_id");
+        String debut_hour = request.getParameter("debut_prestation");
+        HttpSession session = request.getSession();
+        Utilisateur user = (Utilisateur) session.getAttribute("user");
         try {
-            List<Boat> all = BddObject.find(null, new Boat(), null);
-            List<Dock> docks = BddObject.find("dock", new Dock(), null);
-            
-            request.setAttribute("boats", all);
-            request.setAttribute("docks", docks);
+            Prestation_escale.add_new_prestation_escale(escale_id, prestation_id, current_dock, user, debut_hour, debut_hour, null);
+            out.println("mety leleh");
         } catch (Exception e) {
             request.setAttribute("error", e.getMessage());
-        } finally{
-            RequestDispatcher dispat = request.getRequestDispatcher("home.jsp?page=prevision");
-            dispat.forward(request, response);
-        }
+            out.println("Error leleh");
+        }finally{
+            RequestDispatcher dispatcher = request.getRequestDispatcher("Detail_escale_ctrl?escale_id="+escale_id);
+            dispatcher.forward(request, response);
+        }  
+            
+        
+        //processRequest(request, response);
     }
 
     /**
@@ -88,7 +94,7 @@ public class Home_ctrl extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //processRequest(request, response);
+    //    processRequest(request, response);
     }
 
     /**

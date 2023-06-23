@@ -95,38 +95,39 @@ public class FieldUtil {
                 String getColumn = columnName(field);           // Get the column name
                 String valueField = data.get(getColumn);    // Get the value from hasmap
 
-                
-                Class clazz = field.getType();                  // Get the type of the field
-                if(clazz == String.class){
-                    getSetter(result, field).invoke(result, valueField);
-                } else if(clazz == Integer.class){
-                    if(valueField == null) valueField = "0";
-                    getSetter(result, field).invoke(result, Integer.valueOf(valueField));
-                } else if(clazz == Double.class){
-                    if(valueField == null) valueField = "0";
-                    getSetter(result, field).invoke(result, Double.valueOf(valueField));
-                } else if(clazz == Float.class){
-                    if(valueField == null) valueField = "0";
-                    getSetter(result, field).invoke(result, Float.valueOf(valueField));
-                } else if(clazz == Boolean.class){
-                    getSetter(result, field).invoke(result, Boolean.valueOf(valueField));
-                } else if(clazz == Date.class){
-                    Date date = DateUtil.stringToDate(valueField, DatePattern.YYYY_MM_DD);
-                    getSetter(result, field).invoke(result, date);
-                } else if(clazz == Calendar.class){
-                    Calendar calendar = DateUtil.stringToCalendar(valueField, DatePattern.YYYY_MM_DD_hh_min_ss);
-                    getSetter(result, field).invoke(result, calendar);
-                } else if(clazz == java.sql.Date.class){
-                    Date date = DateUtil.stringToDate(valueField, DatePattern.YYYY_MM_DD);
-                    java.sql.Date theDate = DateUtil.utilDateToSqlDate(java.sql.Date.class, date);
-                    getSetter(result, field).invoke(result, theDate);
-                } else if(clazz == java.sql.Timestamp.class){
-                    java.sql.Timestamp theDate = Timestamp.valueOf(valueField);
-                    getSetter(result, field).invoke(result, theDate);
-                } else if(clazz == java.sql.Time.class){
-                    java.sql.Time time = DateUtil.stringToSqlTime(valueField);
-                    getSetter(result, field).invoke(result, time);
-                }        
+                if(valueField != null){
+                    Class clazz = field.getType();                  // Get the type of the field
+                    if(clazz == String.class){
+                        getSetter(result, field).invoke(result, valueField);
+                    } else if(clazz == Integer.class){
+                        if(valueField == null) valueField = "0";
+                        getSetter(result, field).invoke(result, Integer.valueOf(valueField));
+                    } else if(clazz == Double.class){
+                        if(valueField == null) valueField = "0";
+                        getSetter(result, field).invoke(result, Double.valueOf(valueField));
+                    } else if(clazz == Float.class){
+                        if(valueField == null) valueField = "0";
+                        getSetter(result, field).invoke(result, Float.valueOf(valueField));
+                    } else if(clazz == Boolean.class){
+                        getSetter(result, field).invoke(result, Boolean.valueOf(valueField));
+                    } else if(clazz == Date.class){
+                        Date date = DateUtil.stringToDate(valueField, DatePattern.YYYY_MM_DD);
+                        getSetter(result, field).invoke(result, date);
+                    } else if(clazz == Calendar.class){
+                        Calendar calendar = DateUtil.stringToCalendar(valueField, DatePattern.YYYY_MM_DD_hh_min_ss);
+                        getSetter(result, field).invoke(result, calendar);
+                    } else if(clazz == java.sql.Date.class){
+                        Date date = DateUtil.stringToDate(valueField, DatePattern.YYYY_MM_DD);
+                        java.sql.Date theDate = DateUtil.utilDateToSqlDate(java.sql.Date.class, date);
+                        getSetter(result, field).invoke(result, theDate);
+                    } else if(clazz == java.sql.Timestamp.class){
+                        java.sql.Timestamp theDate = Timestamp.valueOf(valueField);
+                        getSetter(result, field).invoke(result, theDate);
+                    } else if(clazz == java.sql.Time.class){
+                        java.sql.Time time = DateUtil.stringToSqlTime(valueField);
+                        getSetter(result, field).invoke(result, time);
+                    }        
+                }
             }
             return result;
             

@@ -14,7 +14,7 @@ import mapping.SGBD;
  */
 public class ConnectionBase {
     private static final SGBD sgbd = SGBD.POSTGRESQL;       // BY default
-    private static final String nameDatabase = "boat";
+    private static final String nameDatabase = "harbor";
     private static final String user = "postgres";
     private static final String mdp = "mdpProm15";
     

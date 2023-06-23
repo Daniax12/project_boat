@@ -12,17 +12,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import mapping.BddObject;
-import model.Boat;
-import model.Dock;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
  * @author rango
  */
-@WebServlet(name = "Home_ctrl", urlPatterns = {"/Home_ctrl"})
-public class Home_ctrl extends HttpServlet {
+@WebServlet(name = "Log_out_ctrl", urlPatterns = {"/Log_out_ctrl"})
+public class Log_out_ctrl extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -41,10 +38,10 @@ public class Home_ctrl extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet Home_ctrl</title>");            
+            out.println("<title>Servlet Log_out_ctrl</title>");            
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet Home_ctrl at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet Log_out_ctrl at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -63,18 +60,11 @@ public class Home_ctrl extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
        // processRequest(request, response);
-        try {
-            List<Boat> all = BddObject.find(null, new Boat(), null);
-            List<Dock> docks = BddObject.find("dock", new Dock(), null);
-            
-            request.setAttribute("boats", all);
-            request.setAttribute("docks", docks);
-        } catch (Exception e) {
-            request.setAttribute("error", e.getMessage());
-        } finally{
-            RequestDispatcher dispat = request.getRequestDispatcher("home.jsp?page=prevision");
-            dispat.forward(request, response);
-        }
+       
+       HttpSession session = request.getSession();
+       session.invalidate();
+        RequestDispatcher dispatcher = request.getRequestDispatcher("index.jsp");
+        dispatcher.forward(request, response);
     }
 
     /**
@@ -88,7 +78,7 @@ public class Home_ctrl extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //processRequest(request, response);
+        processRequest(request, response);
     }
 
     /**

@@ -28,50 +28,154 @@ public class Escale {
     @ColumnField(column = "id_boat")
     private String id_boat;
     
-    @ColumnField(column = "id_dock")
-    private String id_dock;
-    
     @ColumnField(column = "debut_prevision")
     private java.sql.Timestamp debut_prevision;
     
-    @ColumnField(column = "end_prevision")
-    private java.sql.Timestamp end_prevision;
-    
-    @ColumnField(column = "rang")
-    private Integer rang;
-    
     private Boat boat_escale;
     
-    private Dock dock_escale;
-    
-    /**
-     * Get all previsions escale among a list of escales
-     * @param connection
-     * @return
-     * @throws Exception 
-     */
-    public static List<Escale> all_prevision_escales(List<Escale> escales){
-        List<Escale> result = new ArrayList<>();
-         Timestamp now = new Timestamp(System.currentTimeMillis());
-        for (Escale escale : escales) {
-            if(escale.getDebut_prevision().after(now) == true){
-                result.add(escale);
-            }
+    // FACTURE D'UNE ESCALE
+    public Facture escale_facture(Connection connection) throws Exception{
+        
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
         }
-        return result;
+        try {
+           Facture facture = new Facture();
+           facture.setId_escale(this.getId_escale());
+           List<Facture> all = BddObject.find("facture", facture, connection);
+           if(all.size() == 0){
+               return null;
+           }
+           return all.get(0);
+         
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on getting the invoice of an escale. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
     }
+    
+    // SAVOIR SI LA FACTURE DE L'ESCALEE EST DEJA VALIDE OU PAS
+    public boolean is_invoice_valide(Connection connection) throws Exception{
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        try {
+           Facture facture = this.escale_facture(connection);
+           if(facture.getStatus_facture() == 11) return true;
+           return false;
+           
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on knowing if an escale is already valide or not. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+    }
+    
+    
+    // SAVOIR SI UNE ESCALE EST FACTURABLE -->> TOUS LES PRESTATIONS SONT VALIDES
+    public boolean is_facturable(Connection connection) throws Exception{
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        try {
+            List<Prestation_escale> my_prestations = this.getPrestation_done(connection);
+            
+            for(int i = 0; i < my_prestations.size(); i++){
+                if(my_prestations.get(i).getStatus_prestation() == 1) return false;
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on knowing if an escale is invoiceable or not. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+    }
+    
+    
+    // PRENDRE LE QUAI EN COURS ou LE DERNIER QUAI A PARTIR DU PRESTATION
+    public Dock get_last_dock(Connection connection) throws Exception{
+         boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        
+         try {
+            List<Prestation_escale> my_prestations = this.getPrestation_done(connection);
+            for(int i = 0; i < my_prestations.size(); i++){
+                Prestation_escale main = my_prestations.get(i);
+                if(main.getId_prestation().equals("PRES_1") == true){
+                    return main.get_dock(connection);
+                }
+            }
+            return null;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on getting the last dock of the escale. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+    }
+    
+    
+    // INSERTION D'UNE NOUVELLE ESCALE
+    public void insert_first_escale(String id_dock, Utilisateur user, Connection connection) throws Exception {
+        if(user.can_add_prestation() == false){
+            throw new Exception("Not allowed to make this action");
+        }
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        try {
+            java.sql.Timestamp now = new Timestamp(System.currentTimeMillis());             // Enregistrement date
+            String my_id = BddObject.insertInDatabase(this, connection);                    // Insertion de l'escale
+            History history_escale = new History(user.getId_utilisateur(), "A1", now, my_id);   // HIstory escale
+            BddObject.insertInDatabase(history_escale, connection);
+            Dock verif_dock = new Dock();
+            verif_dock.setId_dock(id_dock);                                                         // verifier l'eexistende du quai
+            verif_dock = BddObject.findById("dock", verif_dock, connection);
+            
+            Prestation_escale.prestation_for_escale(this, verif_dock, "PRES_1", user, now, null, connection);   // INSERT STATIONNEMENT
+            Prestation_escale.prestation_for_escale(this, verif_dock, "PRES_2", user, now, now, connection);    // INSERT REMORQUAGE
+            
+            if(isOpen == false) connection.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on saving the new escale. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+    }
+    
        
     // Constructors
-
-    public Escale(String id_boat, String debut_prevision, String end_prevision, int seq) throws Exception{
+    public Escale(String id_boat, String debut_prevision) throws Exception{
         try {
             this.setId_boat(id_boat);
             this.setDebut_prevision(debut_prevision);
-            this.setEnd_prevision(end_prevision);
-            Boat my_boat = this.getBoat_escale();
-            Dock my_dock = Dock.dock_for_boat(my_boat, null);
-            this.setId_dock(my_dock.getId_dock());
-            this.setRang(seq);
         } catch (Exception e) {
             e.printStackTrace();
             throw  new Exception("Error on constructing the escale. Error: "+e.getMessage());
@@ -80,15 +184,13 @@ public class Escale {
    
     public Escale(){}
     
-    public Escale(Timestamp debut_prevision, Timestamp end_prevision, Boat boat_escale, Dock dock_escale) {
+    public Escale(Timestamp debut_prevision, Boat boat_escale) {
         this.setDebut_prevision(debut_prevision);
-        this.setEnd_prevision(end_prevision);
         this.setBoat_escale(boat_escale);
-        this.setDock_escale(dock_escale);
     }
     
 
-    // Getters and setters
+    // GETTERS AND SETTERS
     public Boat getBoat_escale() throws Exception{
         if(this.getId_boat() == null) return null;
         ConnectionBase connectionBase = new ConnectionBase();
@@ -110,29 +212,6 @@ public class Escale {
     public void setBoat_escale(Boat boat_escale) {
         this.boat_escale = boat_escale;
     }
-
-    public Dock getDock_escale() throws Exception{
-        if(this.getId_dock() == null) return null;
-        ConnectionBase connectionBase = new ConnectionBase();
-        Connection connection = null;
-        try {
-            connection = connectionBase.dbConnect(); 
-            Dock dock = new Dock();
-            dock.setId_dock(this.getId_dock());
-            dock = (Dock) BddObject.findById(null, dock, connection);
-            return dock;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw  new Exception("Error on finding the dock of the escale");
-        } finally{
-            connection.close();
-        }
-    }
-
-    public void setDock_escale(Dock dock_escale) {
-        this.dock_escale = dock_escale;
-    }
-
    
     public String getId_escale() {
         return id_escale;
@@ -150,13 +229,6 @@ public class Escale {
         this.id_boat = id_boat;
     }
 
-    public String getId_dock() {
-        return id_dock;
-    }
-
-    public void setId_dock(String id_dock) {
-        this.id_dock = id_dock;
-    }
 
     public Timestamp getDebut_prevision() {
         return debut_prevision;
@@ -170,51 +242,36 @@ public class Escale {
             java.sql.Timestamp date = DateUtil.string_to_timestamp(debut_prevision_string);
             Timestamp now = new Timestamp(System.currentTimeMillis());        // Get now
             
-             int comparisonResult = date.compareTo(now);
-             if(comparisonResult < 0){
-                 throw new Exception("Date already on the last");
-             } 
+//             int comparisonResult = date.compareTo(now);
+//             if(comparisonResult < 0){
+//                 throw new Exception("Date already on the last");
+//             } 
              this.setDebut_prevision(date);
         } catch (Exception e) {
             e.printStackTrace();
             throw  new Exception("Error on setting the debut of the escale prevision");
         }
     }
+  
 
-    public Timestamp getEnd_prevision() {
-        return end_prevision;
-    }
-
-    public void setEnd_prevision(Timestamp end_prevision) {
-        this.end_prevision = end_prevision;
-    }
-    
-    public void setEnd_prevision(String end_prevision_string) throws Exception{
-        if(this.getDebut_prevision() == null){
-            throw  new Exception("Can not insert the end of prevision date without setting the debut of the prevision");
+    // Prendre tous les prestations de l'escale triE par ordre de debut de prestation
+    public List<Prestation_escale> getPrestation_done(Connection connection) throws Exception{
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
         }
-        
         try {
-            java.sql.Timestamp date = DateUtil.string_to_timestamp(end_prevision_string);
-            int comparisonResult = this.getDebut_prevision().compareTo(date);
-            
-            if(comparisonResult > 0){
-                throw  new Exception("End prevision is less than debut previsin");
-            }
-            this.setEnd_prevision(date);
+            Prestation_escale pe = new Prestation_escale();
+            pe.setId_escale(this.getId_escale());
+            return BddObject.findByOrder("prestation_escale", pe, "debut_prestation", Ordering.DESC, connection);
         } catch (Exception e) {
             e.printStackTrace();
-            throw  new Exception("Error on setting end date of the prevision");
+            throw  new Exception("Error on getting all prestations done of the escale. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
         }
     }
-
-    public Integer getRang() {
-        return rang;
-    }
-
-    public void setRang(Integer rang) {
-        this.rang = rang;
-    }
-    
-    
 }

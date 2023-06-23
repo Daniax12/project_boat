@@ -1,39 +1,88 @@
+
+create table utilisateur(
+    id_utilisateur varchar(50) primary key,
+    name_utilisateur varchar(50) 
+);
+insert into utilisateur values('user_1', 'Capitainnerie');
+insert into utilisateur values('user_2', 'Chef Capitainnerie');
+insert into utilisateur values('user_3', 'Facturier');
+insert into utilisateur values('user_4', 'Chef facturier');
+
+-- -----------------------------------------------------------
+
+create table action(
+    id_action varchar(50) primary key,
+    name_action varchar(50)
+);
+
+insert into action values('A1', 'Inserting new escale');
+insert into action values('A2', 'Inserting new prestation');
+insert into action values('A3', 'Prestation validation');
+insert into action values('A4', 'Facturation validation');
+insert into action values('A5', 'Changing dock of a boat');
+insert into action values('A6', 'New facture');
+
+-- --------------------------------------------------------------------
+create sequence history_seq increment by 1;
+
+create table history(
+    id_history varchar(50) primary key,
+    id_utilisateur varchar(50),
+    id_action varchar(50),
+    history_insertion timestamp,
+    remarks varchar(50),
+    foreign key(id_utilisateur) references utilisateur(id_utilisateur),
+    foreign key(id_action) references action(id_action)
+);
+
+-- -------------------------------------------------------------------
+
 create table boat_type(
 	id_boat_type varchar(50) primary key,
         name_boat_type varchar(50)
 );
 
-insert into table boat_type values('b1', 'Paquebot');
-insert into table boat_type values('b2', 'Marchandise');
-insert into table boat_type values('b3', 'Peche'); 
+insert into boat_type values('b1', 'Paquebot');
+insert into boat_type values('b2', 'Marchandise');
+insert into boat_type values('b3', 'Peche'); 
 
 -- -------------------------------------------------------------------
-create sequence boat_seq increment by 1;
+create table nationality(
+    id_nationality varchar(50) primary key,
+    nationality_type varchar(50)
+);
 
+insert into nationality values('NAT_1', 'National');
+insert into nationality values('NAT_2', 'International');
+
+-- ------------------------------------------------------------------
+create sequence boat_seq increment by 1;
 
 create table boat(
     id_boat varchar(50) primary key,
     boat_name varchar(50),
     id_boat_type varchar(50),
+    id_nationality varchar(50),
     profondeur numeric,
-    national int,
     remorquage_duration numeric,
-    foreign key(id_boat_type) references boat_type(id_boat_type)
+    foreign key(id_boat_type) references boat_type(id_boat_type),
+    foreign key(id_nationality) references nationality(id_nationality)
 );
 
-insert into boat values('boat_a', 'As de pique', 'b1', 25, 1, 30);
-insert into boat values('boat_b', 'Sept', 'b2', 10, 0, 40);
-insert into boat values('boat_c', 'Treffle', 'b1', 30, 1, 30);
+insert into boat values('boat_a', 'As de pique', 'b1', 'NAT_1', 25, 30);
+insert into boat values('boat_b', 'Sept', 'b2', 'NAT_1', 10, 40);
+insert into boat values('boat_c', 'Treffle', 'b1', 'NAT_2', 30, 30);
 
 -- -------------------------------------------------------------------------
 create or replace view v_boat_detail as(
-    select boat.*, boat_type.name_boat_type
+    select boat.*, boat_type.name_boat_type, nationality.nationality_type 
     from boat
     inner join boat_type on boat_type.id_boat_type = boat.id_boat_type
+    inner join nationality on nationality.id_nationality = boat.id_nationality
 );
 
 -- -----------------------------------------------------------------------
-'
+
 create sequence dock_seq increment by 1;
 
 create table dock(
@@ -52,12 +101,48 @@ create sequence escale_seq increment by 1;
 create table escale(
     id_escale varchar(50) primary key,
     id_boat varchar(50),
-    id_dock varchar(50),
     debut_prevision timestamp,
     end_prevision timestamp,
-    rang serial,
-    foreign key(id_boat) references boat(id_boat),
+    foreign key(id_boat) references boat(id_boat)
+);
+-- ---------------------------------------------------------------------
+
+
+create table prestation(
+    id_prestation varchar(50) primary key,
+    name_prestation varchar(50)
+);
+
+insert into prestation values('PRES_1', 'STATIONNENEMT');
+insert into prestation values('PRES_2', 'REMORQUAGE');
+insert into prestation values('PRES_3', 'EAU DOUCE');
+insert into prestation values('PRES_4', 'REPARATION');
+
+-- ---------------------------------------------------------------------
+create sequence prestation_seq increment by 1;
+
+create table prestation_escale(
+    id_prestation_escale varchar(50) primary key,
+    id_escale varchar(50),
+    id_prestation varchar(50),
+    id_dock varchar(50),
+    debut_prestation timestamp,
+    end_prestation timestamp,
+    status_prestation int,
+    foreign key(id_escale) references escale(id_escale),
+    foreign key(id_prestation) references prestation(id_prestation),
     foreign key(id_dock) references dock(id_dock)
 );
 
 -- ---------------------------------------------------------------------
+
+create sequence facture_seq increment by 1;
+
+create table facture(
+    id_facture varchar(50) primary key,
+    id_escale varchar(50),
+    status_facture int,
+    montant_total float,
+    foreign key(id_escale) references escale(id_escale)
+);
+-- --------------------------------------------------------------------
