@@ -12,17 +12,17 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
+import jakarta.servlet.http.HttpSession;
+import jakarta.websocket.Session;
 import mapping.BddObject;
-import model.Boat;
-import model.Dock;
+import model.Utilisateur;
 
 /**
  *
  * @author rango
  */
-@WebServlet(name = "Home_ctrl", urlPatterns = {"/Home_ctrl"})
-public class Home_ctrl extends HttpServlet {
+@WebServlet(name = "Login_ctrl", urlPatterns = {"/Login_ctrl"})
+public class Login_ctrl extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -41,10 +41,10 @@ public class Home_ctrl extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet Home_ctrl</title>");            
+            out.println("<title>Servlet Login_ctrl</title>");            
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet Home_ctrl at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet Login_ctrl at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -62,19 +62,7 @@ public class Home_ctrl extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-       // processRequest(request, response);
-        try {
-            List<Boat> all = BddObject.find(null, new Boat(), null);
-            List<Dock> docks = BddObject.find("dock", new Dock(), null);
-            
-            request.setAttribute("boats", all);
-            request.setAttribute("docks", docks);
-        } catch (Exception e) {
-            request.setAttribute("error", e.getMessage());
-        } finally{
-            RequestDispatcher dispat = request.getRequestDispatcher("home.jsp?page=prevision");
-            dispat.forward(request, response);
-        }
+      //  processRequest(request, response);
     }
 
     /**
@@ -88,7 +76,25 @@ public class Home_ctrl extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //processRequest(request, response);
+       // processRequest(request, response);
+       
+       String id_user = request.getParameter("user_id");
+       HttpSession session = request.getSession();
+        try {
+            Utilisateur utilisateur = new Utilisateur();
+            utilisateur.setId_utilisateur(id_user);
+            
+            utilisateur = BddObject.findById("utilisateur", utilisateur, null);
+            
+            session.setAttribute("user", utilisateur);
+            response.sendRedirect("Home_ctrl");
+        } catch (Exception e) {
+            session.invalidate();
+            RequestDispatcher dispatcher = request.getRequestDispatcher("index.jsp");
+            dispatcher.forward(request, response);
+        } 
+       
+       
     }
 
     /**

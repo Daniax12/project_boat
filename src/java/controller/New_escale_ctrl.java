@@ -12,18 +12,21 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import mapping.BddObject;
-import model.Boat;
-import model.Dock;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
  * @author rango
  */
-@WebServlet(name = "Home_ctrl", urlPatterns = {"/Home_ctrl"})
-public class Home_ctrl extends HttpServlet {
-
+import java.sql.Timestamp;
+import mapping.BddObject;
+import model.Escale;
+import model.Utilisateur;
+import utilities.DateUtil;
+import utilities.Ordering;
+@WebServlet(name = "New_escale_ctrl", urlPatterns = {"/New_escale_ctrl"})
+public class New_escale_ctrl extends HttpServlet {
+    private int sequence = 0;
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -38,15 +41,19 @@ public class Home_ctrl extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Home_ctrl</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Home_ctrl at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+            
+            String arrive = request.getParameter("arrive");
+            String depart = request.getParameter("depart");
+            String id_boat = request.getParameter("boat_id");
+            try {
+               Timestamp time = DateUtil.string_to_timestamp(arrive);
+            
+                out.println(arrive);
+                out.println(time);
+                out.println(id_boat);
+            } catch (Exception e) {
+                out.println("Error leleh");
+            }
         }
     }
 
@@ -63,18 +70,27 @@ public class Home_ctrl extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
        // processRequest(request, response);
+PrintWriter out = response.getWriter();
+        HttpSession session = request.getSession();
+        Utilisateur user = (Utilisateur) session.getAttribute("user");
+        String arrive = request.getParameter("arrive");
+        String id_boat = request.getParameter("boat_id");
+        String id_dock = request.getParameter("dock_id");
+
         try {
-            List<Boat> all = BddObject.find(null, new Boat(), null);
-            List<Dock> docks = BddObject.find("dock", new Dock(), null);
-            
-            request.setAttribute("boats", all);
-            request.setAttribute("docks", docks);
+            Escale escale = new Escale(id_boat, arrive);
+            escale.insert_first_escale(id_dock, user, null);
+        //    out.println("mety leleh");
         } catch (Exception e) {
             request.setAttribute("error", e.getMessage());
+          //  out.println("Error leleh");
         } finally{
-            RequestDispatcher dispat = request.getRequestDispatcher("home.jsp?page=prevision");
-            dispat.forward(request, response);
-        }
+            RequestDispatcher dispatcher = request.getRequestDispatcher("Home_ctrl");
+            dispatcher.forward(request, response);
+        }   
+        
+
+        
     }
 
     /**

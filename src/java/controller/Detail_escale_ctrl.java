@@ -12,18 +12,20 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import mapping.BddObject;
+import model.Escale;
+import model.Prestation;
+import model.Prestation_escale;
+import utilities.Ordering;
 
 /**
  *
  * @author rango
  */
-import java.sql.Timestamp;
-import mapping.BddObject;
-import model.Escale;
-import utilities.DateUtil;
-@WebServlet(name = "New_prevision_ctrl", urlPatterns = {"/New_prevision_ctrl"})
-public class New_prevision_ctrl extends HttpServlet {
-    private int sequence = 0;
+@WebServlet(name = "Detail_escale_ctrl", urlPatterns = {"/Detail_escale_ctrl"})
+public class Detail_escale_ctrl extends HttpServlet {
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -38,19 +40,15 @@ public class New_prevision_ctrl extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
-            
-            String arrive = request.getParameter("arrive");
-            String depart = request.getParameter("depart");
-            String id_boat = request.getParameter("boat_id");
-            try {
-               Timestamp time = DateUtil.string_to_timestamp(arrive);
-            
-                out.println(arrive);
-                out.println(time);
-                out.println(id_boat);
-            } catch (Exception e) {
-                out.println("Error leleh");
-            }
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet Detail_escale_ctrl</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet Detail_escale_ctrl at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
         }
     }
 
@@ -67,20 +65,30 @@ public class New_prevision_ctrl extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
        // processRequest(request, response);
-       PrintWriter out = response.getWriter();
-        String arrive = request.getParameter("arrive");
-        String depart = request.getParameter("depart");
-        String id_boat = request.getParameter("boat_id");
-        
+       
+       String escale_id = request.getParameter("escale_id");
         try {
-            Escale escale = new Escale(id_boat, arrive, depart, this.sequence);
-            BddObject.insertInDatabase(escale, null);
-            this.sequence += 11;
+            Escale escale  = new Escale();
+            escale.setId_escale(escale_id);
+            escale = BddObject.findById("escale", escale, null);  // PRENDRE L'ESCALE
+            
+            Prestation_escale pe = new Prestation_escale();                         // PRENDRE TOUS LES PROPOSITIONS DE L'ESCALE
+            pe.setId_escale(escale_id);
+            List<Prestation_escale> escale_prestation = BddObject.findByOrder("prestation_escale", pe, "debut_prestation", Ordering.DESC, null);
+            
+            Prestation prestation = new Prestation();
+            List<Prestation> prestations = BddObject.find("prestation", new Prestation(), null);
+            
+            // send all data
+            request.setAttribute("escale", escale);
+            request.setAttribute("my_prestations", escale_prestation);
+            request.setAttribute("prestations", prestations);
+            
         } catch (Exception e) {
-            out.println("Error leleh. Error: "+e.getMessage());
+            request.setAttribute("error", e.getMessage());
         } finally{
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/Home_ctrl");
-            dispatcher.forward(request, response);
+            RequestDispatcher dispat = request.getRequestDispatcher("home.jsp?page=detail_escale");
+            dispat.forward(request, response);
         }
     }
 
@@ -95,7 +103,7 @@ public class New_prevision_ctrl extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //processRequest(request, response);
+        processRequest(request, response);
     }
 
     /**
