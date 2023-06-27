@@ -7,6 +7,7 @@ package model;
 import annoted.ColumnField;
 import annoted.DataType;
 import annoted.TableAnnotation;
+import mapping.BddObject;
 
 /**
  *
@@ -90,5 +91,10 @@ public class Boat {
 
     public void setId_nationality(String id_nationality) {
         this.id_nationality = id_nationality;
+    }
+    
+    public String my_nationality(){
+        if(this.getId_nationality().equals("NAT_1") == true) return "National";   
+        else return "International";
     }
 }

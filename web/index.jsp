@@ -4,6 +4,15 @@ To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
+
+<%@page import="java.util.*"%>
+<%@page import="mapping.BddObject"%>
+<%@page import="model.Utilisateur"%>
+
+<%
+    List<Utilisateur> all_user = BddObject.find("utilisateur", new Utilisateur(), null); 
+
+%>
 <html>
     <head>
         <title>POrt</title>
@@ -31,12 +40,28 @@ and open the template in the editor.
 
     </head>
     <body>
-        <div>
-            <a href="Home_ctrl">
-                <button class="btn btn-primary">
-                    Admin page
-                </button>
-            </a>
+        <div style="margin-top: 100px; margin-left: 500px;">
+            <form action="Login_ctrl" method="post" novalidate="novalidate">
+                <div class="row form-group">
+                    <div class="col col-md-2">
+                        <label for="selectSm" class=" form-control-label">Utilisateur :</label>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select name="user_id" id="SelectLm" class="form-control-sm form-control">
+                            <% for(Utilisateur user : all_user){ %>
+                                <option value="<%= user.getId_utilisateur() %>">
+                                    <%= user.getName_utilisateur() %>
+                                </option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <button id="payment-button" type="submit" class="btn  btn-info">
+                        Connecter
+                    </button>
+                </div>
+            </form>
         </div>
     </body>
 </html>

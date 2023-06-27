@@ -10,8 +10,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +25,101 @@ import java.util.concurrent.TimeUnit;
  */
 public class DateUtil {
     
+    // Adding minutes to a timestamp
+    public static Timestamp add_minutes_to_timestamp(Timestamp timestamp, int minutes) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(timestamp);
+        cal.add(Calendar.MINUTE, minutes);
+        return new Timestamp(cal.getTime().getTime());
+    }
+    
+    
+    // Adding time_data to a timestamp
+    public static Timestamp add_time_data_in_timestamp(Timestamp timestamp, Time time){
+        LocalDate localDate = timestamp.toLocalDateTime().toLocalDate();
+        LocalTime localTime = time.toLocalTime();
+        
+        // Combine LocalDate and LocalTime to LocalDateTime
+        LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
+        // Convert LocalDateTime to Timestamp
+        Timestamp result = Timestamp.valueOf(localDateTime);
+        
+        return result;
+    }
+    
+    
+    // Adding a day into a timestamp
+    public static Timestamp add_day_to_timestamp(Timestamp timestamp, int day){
+        LocalDateTime localDateTime = timestamp.toLocalDateTime();
+
+        // Adding a day
+        LocalDateTime newDateTime = localDateTime.plusDays(day);
+
+        Timestamp newTimestamp = Timestamp.valueOf(newDateTime);
+        return newTimestamp;
+    }
+    
+    // Get the day of a specific timestamp
+    public static int day_of_timestamp(Timestamp timestamp){
+        LocalDate date = timestamp.toLocalDateTime().toLocalDate();
+        return date.getDayOfMonth();
+    }
+    
+    // Get the month of a specific timestamp
+    public static int month_of_timestamp(Timestamp timestamp){
+        LocalDate date = timestamp.toLocalDateTime().toLocalDate();
+        return date.getMonthValue();
+    }
+    
+    // Get the month of a specific timestamp
+    public static int year_of_timestamp(Timestamp timestamp){
+        LocalDate date = timestamp.toLocalDateTime().toLocalDate();
+        return date.getYear();
+    }  
+    
+    // Here, we must consider that the date must be the same
+    public static int duration_minutes_two_intervalle(Timestamp debut, Timestamp end, Timestamp bornInf, Timestamp bornSup){
+        int trig = 0;
+        boolean first_in = is_between_timestamps(debut, bornInf, bornSup);
+        boolean last_in = is_between_timestamps(end, bornInf, bornSup);
+        if(first_in == true && last_in == true){
+            return difference_minutes_two_timestamp(debut, end);
+        } else if( first_in == true && last_in == false){
+            return difference_minutes_two_timestamp(debut, bornSup);
+        } else if(first_in == false && last_in == true){
+            return difference_minutes_two_timestamp(bornInf, end);
+        } else if(is_between_timestamps(bornInf, debut, end) == true && is_between_timestamps(bornSup, debut, end) == true){
+            return difference_minutes_two_timestamp(bornInf, bornSup);
+        }
+        return 0;
+    }
+    
+    
+    public static int difference_minutes_two_timestamp(Timestamp debut, Timestamp end){
+        String deb = timestamp_to_hour_min(debut);
+        System.out.println("deb is "+deb);
+        String en = timestamp_to_hour_min(end);
+        System.out.println("end is "+en);
+        
+        return calculateHourDifference(en, deb);
+    }
+    
+    
+    public static String timestamp_to_hour_min(Timestamp timestamp){
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+        return format.format(timestamp);
+    }
+    
+    // Difference entre 17:30 et 20:30
+    public static int calculateHourDifference(String hour1, String hour2) {
+        LocalTime time1 = LocalTime.parse(hour1);
+        LocalTime time2 = LocalTime.parse(hour2);
+
+        long minutes = Math.abs(ChronoUnit.MINUTES.between(time1, time2));
+        return (int) minutes;
+    }
+    
+    // String from HTML -> TIMESTAMP
     public static Timestamp string_to_timestamp(String timestampString) throws Exception {
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
