@@ -106,17 +106,18 @@ create table escale(
     foreign key(id_boat) references boat(id_boat)
 );
 -- ---------------------------------------------------------------------
-
-
 create table prestation(
     id_prestation varchar(50) primary key,
-    name_prestation varchar(50)
+    name_prestation varchar(50),
+    tranche_min numeric,
+    dock_calculation int,
+    boat_calculation int
 );
 
-insert into prestation values('PRES_1', 'STATIONNENEMT');
-insert into prestation values('PRES_2', 'REMORQUAGE');
-insert into prestation values('PRES_3', 'EAU DOUCE');
-insert into prestation values('PRES_4', 'REPARATION');
+insert into prestation values('PRES_1', 'STATIONNENEMT', 15);
+insert into prestation values('PRES_2', 'REMORQUAGE', 10);
+insert into prestation values('PRES_3', 'EAU DOUCE', 0);
+insert into prestation values('PRES_4', 'REPARATION', 10);
 
 -- ---------------------------------------------------------------------
 create sequence prestation_seq increment by 1;
@@ -146,3 +147,90 @@ create table facture(
     foreign key(id_escale) references escale(id_escale)
 );
 -- --------------------------------------------------------------------
+
+create table tranche_hour(
+    id_tranche_hour varchar(50) primary key,
+    debut_tranche time,
+    end_tranche time
+);
+
+insert into tranche_hour values('th1', '06:01:00', '12:00:00');
+insert into tranche_hour values('th2', '12:01:00', '18:00:00');
+insert into tranche_hour values('th3', '18:01:00', '23:59:00');
+insert into tranche_hour values('th4', '00:01:00', '06:00:00');
+
+-- ----------------------------------------------------------------------
+create table monnaie(
+    id_monnaie varchar(50) primary key,
+    name_monnaie varchar(50)
+);
+
+insert into monnaie values('m1', 'AR');
+insert into monnaie values('m2', 'EU');
+
+-- -------------------------------------------------------------------------
+create table exchange_rate(
+    id_exchange_rate varchar(50) primary key,
+    date_exchange date,
+    id_monnaie1 varchar(50),
+    id_monnaie2 varchar(50),
+    value_rate numeric,
+    foreign key(id_monnaie1) references monnaie(id_monnaie),
+    foreign key(id_monnaie2) references monnaie(id_monnaie)
+);
+
+insert into exchange_rate values('ex0', '2023-06-25', 'm2', 'm1', 4600);
+insert into exchange_rate values('ex1', '2023-06-24', 'm2', 'm1', 4500);
+insert into exchange_rate values('ex2', '2023-06-24', 'm1', 'm1', 1);
+-- -------------------------------------------------------------------------
+
+create or replace view v_monnaie_rate as(
+    select exchange_rate.*, monnaie.name_monnaie
+    from exchange_rate
+    inner join monnaie on monnaie.id_monnaie = exchange_rate.id_monnaie1
+);
+
+-- ---------------------------------------------------------------------
+
+create table tarif_prestation(
+    id_tarif_prestation varchar(50) primary key,
+    id_prestation varchar(50),
+    id_nationality varchar(50),
+    id_dock varchar(50),
+    id_boat_type varchar(50),
+    id_tranche_hour varchar(50),
+    montant_prestation numeric,
+    id_monnaie varchar(50),
+    foreign key(id_prestation) references prestation(id_prestation),
+    foreign key(id_nationality) references nationality(id_nationality),
+    foreign key(id_dock) references dock(id_dock),
+    foreign key(id_tranche_hour) references tranche_hour(id_tranche_hour),
+    foreign key(id_boat_type) references boat_type(id_boat_type)
+);
+
+insert into tarif_prestation values('tp1', 'PRES_1', 'NAT_1', 'QUAI2', null, 'th1', 1000, 'm1');
+insert into tarif_prestation values('tp2', 'PRES_1', 'NAT_1', 'QUAI2', null, 'th2', 900, 'm1');
+insert into tarif_prestation values('tp3', 'PRES_1', 'NAT_1', 'QUAI2', null, 'th3', 850, 'm1');
+insert into tarif_prestation values('tp4', 'PRES_1', 'NAT_1', 'QUAI2', null, 'th4', 700, 'm1');
+
+insert into tarif_prestation values('tp5', 'PRES_1', 'NAT_2', 'QUAI2', null, 'th1', 20, 'm2');
+insert into tarif_prestation values('tp6', 'PRES_1', 'NAT_2', 'QUAI2', null, 'th2', 15, 'm2');
+insert into tarif_prestation values('tp7', 'PRES_1', 'NAT_2', 'QUAI2', null, 'th3', 12, 'm2');
+insert into tarif_prestation values('tp8', 'PRES_1', 'NAT_2', 'QUAI2', null, 'th4', 10, 'm2');
+
+-- CESSION D'EAU
+insert into tarif_prestation values('tp9', 'PRES_3', 'NAT_1', null, null, 'th1', 50000, 'm1');
+insert into tarif_prestation values('tp10', 'PRES_3', 'NAT_2', null, null, 'th1', 200, 'm2');
+
+
+
+
+-- --------------------------------------------------------------------
+
+create or replace view v_prestation_tranche as(
+    select tarif_prestation.*, tranche_hour.debut_tranche, tranche_hour.end_tranche
+    from tarif_prestation
+    inner join tranche_hour on tranche_hour.id_tranche_hour = tarif_prestation.id_tranche_hour
+);
+
+-- ----------------------------------------------------------------------

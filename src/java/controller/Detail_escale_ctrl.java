@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import mapping.BddObject;
+import model.Dock;
 import model.Escale;
 import model.Prestation;
 import model.Prestation_escale;
@@ -68,6 +69,8 @@ public class Detail_escale_ctrl extends HttpServlet {
        
        String escale_id = request.getParameter("escale_id");
         try {
+            PrintWriter out = response.getWriter();
+            
             Escale escale  = new Escale();
             escale.setId_escale(escale_id);
             escale = BddObject.findById("escale", escale, null);  // PRENDRE L'ESCALE
@@ -76,13 +79,15 @@ public class Detail_escale_ctrl extends HttpServlet {
             pe.setId_escale(escale_id);
             List<Prestation_escale> escale_prestation = BddObject.findByOrder("prestation_escale", pe, "debut_prestation", Ordering.DESC, null);
             
-            Prestation prestation = new Prestation();
             List<Prestation> prestations = BddObject.find("prestation", new Prestation(), null);
             
+            List<Dock> docks = BddObject.find("dock", new Dock(), null);
             // send all data
             request.setAttribute("escale", escale);
             request.setAttribute("my_prestations", escale_prestation);
             request.setAttribute("prestations", prestations);
+            request.setAttribute("docks", docks);
+            
             
         } catch (Exception e) {
             request.setAttribute("error", e.getMessage());

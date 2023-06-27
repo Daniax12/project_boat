@@ -13,20 +13,16 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.Prestation_escale;
+import model.Utilisateur;
 
 /**
  *
  * @author rango
  */
-import java.sql.Timestamp;
-import mapping.BddObject;
-import model.Escale;
-import model.Utilisateur;
-import utilities.DateUtil;
-import utilities.Ordering;
-@WebServlet(name = "New_escale_ctrl", urlPatterns = {"/New_escale_ctrl"})
-public class New_escale_ctrl extends HttpServlet {
-    private int sequence = 0;
+@WebServlet(name = "Change_dock_ctrl", urlPatterns = {"/Change_dock_ctrl"})
+public class Change_dock_ctrl extends HttpServlet {
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -41,19 +37,15 @@ public class New_escale_ctrl extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
-            
-            String arrive = request.getParameter("arrive");
-            String depart = request.getParameter("depart");
-            String id_boat = request.getParameter("boat_id");
-            try {
-               Timestamp time = DateUtil.string_to_timestamp(arrive);
-            
-                out.println(arrive);
-                out.println(time);
-                out.println(id_boat);
-            } catch (Exception e) {
-                out.println("Error leleh");
-            }
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet Change_dock_ctrl</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet Change_dock_ctrl at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
         }
     }
 
@@ -69,28 +61,24 @@ public class New_escale_ctrl extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-       // processRequest(request, response);
-        PrintWriter out = response.getWriter();
+        //processRequest(request, response);
+        
+        String escale_id = request.getParameter("escale_id");
+        String dock_id = request.getParameter("new_dock_id");
+        String old_dock = request.getParameter("old_dock");
+        String prestation_id = request.getParameter("prestation_id");
+        String debut_hour = request.getParameter("debut_hour");
         HttpSession session = request.getSession();
         Utilisateur user = (Utilisateur) session.getAttribute("user");
-        String arrive = request.getParameter("arrive");
-        String id_boat = request.getParameter("boat_id");
-        String id_dock = request.getParameter("dock_id");
-
         try {
-            Escale escale = new Escale(id_boat, arrive);
-            escale.insert_first_escale(id_dock, user, null);
-        //    out.println("mety leleh");
+            Prestation_escale.change_dock(escale_id, dock_id, old_dock, user, debut_hour, null);
+
         } catch (Exception e) {
             request.setAttribute("error", e.getMessage());
-          //  out.println("Error leleh");
-        } finally{
-            RequestDispatcher dispatcher = request.getRequestDispatcher("Home_ctrl");
+        }finally{
+            RequestDispatcher dispatcher = request.getRequestDispatcher("Detail_escale_ctrl?escale_id="+escale_id);
             dispatcher.forward(request, response);
-        }   
-        
-
-        
+        }  
     }
 
     /**
@@ -104,7 +92,7 @@ public class New_escale_ctrl extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //processRequest(request, response);
+        processRequest(request, response);
     }
 
     /**

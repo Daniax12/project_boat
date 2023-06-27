@@ -1,0 +1,27 @@
+-- DROPING EVERYTHING
+delete from prestation_escale;
+delete from facture;
+delete from escale;
+
+-- INSERTING NEW ESCALE
+
+insert into escale values('ESC_99', 'boat_a', '2023-06-28 17:30:00');
+
+-- INSERTING PRESTATION ESCALE
+
+-- Stationnement
+insert into prestation_escale values('PRE_ESC_99', 'ESC_99', 'PRES_1', 'QUAI1', '2023-06-28 17:30:00', '2023-06-28 20:30:00', 1);
+
+-- Remorquage
+insert into prestation_escale values('PRE_ESC_98', 'ESC_99', 'PRES_2', 'QUAI1', '2023-06-28 17:30:00', '2023-06-28 18:30:00', 1);
+
+-- Reparation
+insert into prestation_escale values('PRE_ESC_97', 'ESC_99', 'PRES_4', 'QUAI1', '2023-06-28 18:30:00', '2023-06-28 19:30:00', 1);
+
+-- Eau douce
+insert into prestation_escale values('PRE_ESC_96', 'ESC_99', 'PRES_3', 'QUAI1', '2023-06-28 17:30:00', '2023-06-28 17:30:00', 1);
+
+-- INSERTING TO FACTURE
+insert into facture values('FAC_99', 'ESC_99', 1, 0);
+
+-- Calcul tarifaire

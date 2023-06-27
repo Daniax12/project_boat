@@ -5,16 +5,14 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="model.Boat"%>
-<%@page import="model.Dock"%>
-<%@page import="model.Proposition"%>
+<%@page import="model.*"%>
 <%@page import="utilities.*"%>
 <%@page import="database.ConnectionBase"%>
 <%@page import="mapping.*"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="java.util.*"%>
 <%@page import="java.sql.*"%>
-<%@page import="java.text.NumberFormat"%>
+<%@page import="java.time.*"%>
 
 
 <%
@@ -23,24 +21,18 @@
         
         try {
            connection = cb.dbConnect();
-           out.println(connection + "<br>");
-        //out.println("Adding "+ DateUtil.time_difference_two_timestamp(debut, main_date));
+           
+                   Prestation_escale pe = new Prestation_escale();
+           pe.setId_prestation_escale("PRE_ESC_7");
+           pe = BddObject.findById("prestation_escale", pe, null);
+           //out.println("Tarif is " + pe.get_price_with_exchange(null));
+             Timestamp timestamp = Timestamp.valueOf("2023-06-26 09:50:00");
+            int minutesToAdd = 30;
+
+            Timestamp updatedTimestamp = DateUtil.add_minutes_to_timestamp(timestamp, minutesToAdd);
+            out.println("Updated Timestamp: " + updatedTimestamp);
             
-        Dock dock = new Dock();
-        dock.setId_dock("QUAI3");
-         dock = BddObject.findById(null, dock, connection);
-         List<Proposition> all = dock.dock_propositions_escale(connection);
-         
-         for(int i = 0; i < all.size(); i++){
-            out.println("Id escale is " + all.get(i).getEscale_propositin().getId_escale() + "<br>");
-            out.println("Attente is "+DateUtil.long_to_string(all.get(i).getAttente_duration()) + "<br>");
-             out.println("Debut prevision is "+all.get(i).getEscale_propositin().getDebut_prevision() + "<br>");
-             out.println("Proposition debut is "+all.get(i).getDebut_propose() + "<br>");
-             out.println("Proposition end is "+all.get(i).getEnd_propose() + "<br>");
-             out.println("--------------------------------- <br>");
-         }
-
-
+            
             connection.commit();
         } catch (Exception e) {
             connection.rollback();

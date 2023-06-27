@@ -31,11 +31,9 @@ public class Escale {
     @ColumnField(column = "debut_prevision")
     private java.sql.Timestamp debut_prevision;
     
-    private Boat boat_escale;
-    
+        
     // FACTURE D'UNE ESCALE
     public Facture escale_facture(Connection connection) throws Exception{
-        
         boolean isOpen = false;
         ConnectionBase connectionBase = new ConnectionBase();
         if(connection == null){
@@ -123,7 +121,7 @@ public class Escale {
             for(int i = 0; i < my_prestations.size(); i++){
                 Prestation_escale main = my_prestations.get(i);
                 if(main.getId_prestation().equals("PRES_1") == true){
-                    return main.get_dock(connection);
+                    return main.pe_dock(connection);
                 }
             }
             return null;
@@ -155,11 +153,15 @@ public class Escale {
             History history_escale = new History(user.getId_utilisateur(), "A1", now, my_id);   // HIstory escale
             BddObject.insertInDatabase(history_escale, connection);
             Dock verif_dock = new Dock();
-            verif_dock.setId_dock(id_dock);                                                         // verifier l'eexistende du quai
+            verif_dock.setId_dock(id_dock);                                                         // verifier l'existende du quai
             verif_dock = BddObject.findById("dock", verif_dock, connection);
             
+            Boat the_boat = this.escale_boat(connection);
+            Timestamp end_remorquage = DateUtil.add_minutes_to_timestamp(now, the_boat.getRemorquage_duration());
+            
+            // WE CAN CHANGE THE DEBUT HOUR OF THE 
             Prestation_escale.prestation_for_escale(this, verif_dock, "PRES_1", user, now, null, connection);   // INSERT STATIONNEMENT
-            Prestation_escale.prestation_for_escale(this, verif_dock, "PRES_2", user, now, now, connection);    // INSERT REMORQUAGE
+            Prestation_escale.prestation_for_escale(this, verif_dock, "PRES_2", user, now, end_remorquage, connection);    // INSERT REMORQUAGE
             
             if(isOpen == false) connection.commit();
         } catch (Exception e) {
@@ -184,19 +186,17 @@ public class Escale {
    
     public Escale(){}
     
-    public Escale(Timestamp debut_prevision, Boat boat_escale) {
-        this.setDebut_prevision(debut_prevision);
-        this.setBoat_escale(boat_escale);
-    }
-    
-
-    // GETTERS AND SETTERS
-    public Boat getBoat_escale() throws Exception{
+    // FK
+    public Boat escale_boat(Connection connection) throws Exception{
         if(this.getId_boat() == null) return null;
+        boolean isOpen = false;
         ConnectionBase connectionBase = new ConnectionBase();
-        Connection connection = null;
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
         try {
-            connection = connectionBase.dbConnect(); 
             Boat boat = new Boat();
             boat.setId_boat(this.getId_boat());
             boat = (Boat) BddObject.findById("v_boat_detail", boat, connection);
@@ -205,14 +205,12 @@ public class Escale {
             e.printStackTrace();
             throw  new Exception("Error on finding the boat of the escale");
         } finally{
-            connection.close();
+            if(isOpen == false) connection.close();
         }
     }
-
-    public void setBoat_escale(Boat boat_escale) {
-        this.boat_escale = boat_escale;
-    }
    
+    
+    // GETTERS AND SETTERS
     public String getId_escale() {
         return id_escale;
     }

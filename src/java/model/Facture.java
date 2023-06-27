@@ -38,6 +38,57 @@ public class Facture {
     private Float montant_facture;
 
     
+    // Montant final d'une facture
+    public float get_total_montant_facture(Connection connection) throws Exception{
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        try {
+           float result = 0;
+           List<Prestation_escale> my_prestation = this.facture_prestations(connection);
+           if(my_prestation != null){
+               for(int i = 0; i < my_prestation.size(); i++){
+                   result += my_prestation.get(i).get_price_with_exchange(connection);
+               }
+           }
+           return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on getting the total value of the escale invoice. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+    }
+    
+    // GET ALL FACTURE PRESTATION DETAILS
+    public List<Prestation_escale> facture_prestations(Connection connection) throws Exception{
+        if(this.getId_escale() == null) return null;
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        try {
+           Prestation_escale pe = new Prestation_escale();
+           pe.setId_escale(this.getId_escale());
+           List<Prestation_escale> result = BddObject.find("prestation_escale", pe, connection);
+           return result;
+           
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on getting all prestations of the invoice. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+    }
+    
+    
     // VALIDER FACTURE
     public void validate_facture(Utilisateur user, Connection connection) throws Exception{
          if(user.can_validate_invoice()== false){
