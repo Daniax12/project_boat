@@ -79,7 +79,7 @@ public class New_escale_ctrl extends HttpServlet {
 
         try {
             Escale escale = new Escale(id_boat, arrive);
-            escale.insert_first_escale(id_dock, user, null);
+            escale.insert_first_escale(id_dock, arrive, user, null);
         //    out.println("mety leleh");
         } catch (Exception e) {
             request.setAttribute("error", e.getMessage());

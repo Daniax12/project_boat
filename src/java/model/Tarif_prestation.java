@@ -47,7 +47,42 @@ public class Tarif_prestation {
     
     @ColumnField(column = "id_monnaie")
     private String id_monnaie;
+    
+    @ColumnField(column = "level")
+    private Integer level;
 
+    // Specific montant depending on quai, nationality, prestation (MUST BE CLASS HERE, NOT STRING !!!!!!!!!!!)
+    public static List<Tarif_prestation> get_specific_tarif(String id_dock, String id_boat_type, String id_nationality, String id_prestation, String id_tranche_hour, int dock_calculation, int boat_calculation, Connection connection) throws Exception{
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        try {
+            Tarif_prestation tp = new Tarif_prestation();
+            if(dock_calculation == 0){
+                tp.setId_dock(id_dock);
+            }
+            
+            if(boat_calculation == 0){
+                tp.setId_boat_type(id_boat_type);
+            }
+            tp.setId_tranche_hour(id_tranche_hour);
+            tp.setId_nationality(id_nationality);
+            tp.setId_prestation(id_prestation);
+            
+            List<Tarif_prestation> result = BddObject.find("v_prestation_tranche", tp, connection);
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on getting specific prestation tarif. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+    } 
+    
     
     // Specific montant depending on quai, nationality, prestation (MUST BE CLASS HERE, NOT STRING !!!!!!!!!!!)
     public static List<Tarif_prestation> get_specific_tarif(String id_dock, String id_boat_type, String id_nationality, String id_prestation, int dock_calculation, int boat_calculation, Connection connection) throws Exception{
@@ -164,6 +199,14 @@ public class Tarif_prestation {
 
     public void setId_boat_type(String id_boat_type) {
         this.id_boat_type = id_boat_type;
+    }
+
+    public Integer getLevel() {
+        return level;
+    }
+
+    public void setLevel(Integer level) {
+        this.level = level;
     }
     
     

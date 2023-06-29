@@ -130,6 +130,7 @@ create table prestation_escale(
     debut_prestation timestamp,
     end_prestation timestamp,
     status_prestation int,
+    notice numeric,
     foreign key(id_escale) references escale(id_escale),
     foreign key(id_prestation) references prestation(id_prestation),
     foreign key(id_dock) references dock(id_dock)
@@ -154,11 +155,8 @@ create table tranche_hour(
     end_tranche time
 );
 
-insert into tranche_hour values('th1', '06:01:00', '12:00:00');
-insert into tranche_hour values('th2', '12:01:00', '18:00:00');
-insert into tranche_hour values('th3', '18:01:00', '23:59:00');
-insert into tranche_hour values('th4', '00:01:00', '06:00:00');
-
+insert into tranche_hour values('th1', '00:00:10', '18:00:00');
+insert into tranche_hour values('th2', '18:00:10', '23:59:00');
 -- ----------------------------------------------------------------------
 create table monnaie(
     id_monnaie varchar(50) primary key,
@@ -192,6 +190,8 @@ create or replace view v_monnaie_rate as(
 
 -- ---------------------------------------------------------------------
 
+create sequence tarif_seq increment by 1;
+
 create table tarif_prestation(
     id_tarif_prestation varchar(50) primary key,
     id_prestation varchar(50),
@@ -201,6 +201,7 @@ create table tarif_prestation(
     id_tranche_hour varchar(50),
     montant_prestation numeric,
     id_monnaie varchar(50),
+    level int,
     foreign key(id_prestation) references prestation(id_prestation),
     foreign key(id_nationality) references nationality(id_nationality),
     foreign key(id_dock) references dock(id_dock),
@@ -208,21 +209,116 @@ create table tarif_prestation(
     foreign key(id_boat_type) references boat_type(id_boat_type)
 );
 
-insert into tarif_prestation values('tp1', 'PRES_1', 'NAT_1', 'QUAI2', null, 'th1', 1000, 'm1');
-insert into tarif_prestation values('tp2', 'PRES_1', 'NAT_1', 'QUAI2', null, 'th2', 900, 'm1');
-insert into tarif_prestation values('tp3', 'PRES_1', 'NAT_1', 'QUAI2', null, 'th3', 850, 'm1');
-insert into tarif_prestation values('tp4', 'PRES_1', 'NAT_1', 'QUAI2', null, 'th4', 700, 'm1');
+-- Stationnement PRES_1
 
-insert into tarif_prestation values('tp5', 'PRES_1', 'NAT_2', 'QUAI2', null, 'th1', 20, 'm2');
-insert into tarif_prestation values('tp6', 'PRES_1', 'NAT_2', 'QUAI2', null, 'th2', 15, 'm2');
-insert into tarif_prestation values('tp7', 'PRES_1', 'NAT_2', 'QUAI2', null, 'th3', 12, 'm2');
-insert into tarif_prestation values('tp8', 'PRES_1', 'NAT_2', 'QUAI2', null, 'th4', 10, 'm2');
+-- --------------------------------------------------------------------- PRESTA --- NATIONA - QUAI - TYPE -HOUR - montant- 
 
--- CESSION D'EAU
-insert into tarif_prestation values('tp9', 'PRES_3', 'NAT_1', null, null, 'th1', 50000, 'm1');
-insert into tarif_prestation values('tp10', 'PRES_3', 'NAT_2', null, null, 'th1', 200, 'm2');
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th1', 100000, 'm1', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th1', 150000, 'm1', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th1', 200000, 'm1', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th1', 250000, 'm1', 4);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th1', 50000, 'm1', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th2', 150000, 'm1', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th2', 200000, 'm1', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th2', 250000, 'm1', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th2', 300000, 'm1', 4);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_1', 'QUAI1', null, 'th2', 60000, 'm1', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th1', 500, 'm2', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th1', 800, 'm2', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th1', 1000, 'm2', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th1', 1500, 'm2', 4);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th1', 200, 'm2', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th2', 800, 'm2', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th2', 1000, 'm2', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th2', 1500, 'm2', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th2', 2000, 'm2', 4);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_1', 'NAT_2', 'QUAI1', null, 'th2', 250, 'm2', 5);
+
+-- REPARATION
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th1', 10000, 'm1', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th1', 15000, 'm1', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th1', 20000, 'm1', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th1', 25000, 'm1', 4);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th1', 15000, 'm1', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th2', 15000, 'm1', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th2', 20000, 'm1', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th2', 25000, 'm1', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th2', 30000, 'm1', 4);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_1', null, null, 'th2', 20000, 'm1', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th1', 50, 'm2', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th1', 80, 'm2', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th1', 100, 'm2', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th1', 120, 'm2', 4);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th1', 70, 'm2', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th2', 100, 'm2', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th2', 110, 'm2', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th2', 120, 'm2', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th2', 130, 'm2', 4);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_4', 'NAT_2', null, null, 'th2', 90, 'm2', 5);
 
 
+-- REMORQUAGE PETROLIER
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th1', 100000, 'm1', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th1', 150000, 'm1', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th1', 200000, 'm1', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th1', 20000, 'm1', 4);
+-- insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th1', 12000, 'm1', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th2', 150000, 'm1', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th2', 200000, 'm1', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th2', 250000, 'm1', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th2', 25000, 'm1', 4);
+-- insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b1', 'th2', 15000, 'm1', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th1', 500, 'm2', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th1', 800, 'm2', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th1', 1000, 'm2', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th1', 100, 'm2', 4);
+-- insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th1', 15, 'm2', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th2', 600, 'm2', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th2', 900, 'm2', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th2', 1100, 'm2', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th2', 200, 'm2', 4);
+-- insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b1', 'th2', 16, 'm2', 5);
+
+-- REMORQUAGE PAQUEBOT
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th1', 150000, 'm1', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th1', 200000, 'm1', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th1', 250000, 'm1', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th1', 20000, 'm1', 4);
+-- insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th1', 12000, 'm1', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th2', 200000, 'm1', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th2', 250000, 'm1', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th2', 300000, 'm1', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th2', 25000, 'm1', 4);
+-- insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_1', null, 'b3', 'th2', 15000, 'm1', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th1', 800, 'm2', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th1', 1000, 'm2', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th1', 1200, 'm2', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th1', 100, 'm2', 4);
+-- insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th1', 15, 'm2', 5);
+
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th2', 900, 'm2', 1);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th2', 1100, 'm2', 2);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th2', 1300, 'm2', 3);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th2', 150, 'm2', 4);
+-- insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_2', 'NAT_2', null, 'b3', 'th2', 16, 'm2', 5);
+
+-- CESSION D'EAU PRES_3
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_3', 'NAT_1', null, null, 'th1', 500, 'm1', 0);
+insert into tarif_prestation values(CONCAT('tp_', nextval('tarif_seq')), 'PRES_3', 'NAT_2', null, null, 'th1', 1.5, 'm2', 0);
 
 
 -- --------------------------------------------------------------------

@@ -64,6 +64,7 @@
                                                     <th> Quai </th>
                                                     <th> Heure debut </th>
                                                     <th> Heure fin </th>
+                                                    <th> Remarque </th>
                                                     <th> Montant </th>
                                                 </tr>
                                             </thead>
@@ -78,6 +79,7 @@
                                                         <td> <%= pe.pe_dock(null).getName_dock() %> </td>
                                                         <td> <%= pe.getDebut_prestation() %></td>
                                                         <td> <%= pe.getEnd_prestation()  %> </td>
+                                                        <td> <%= pe.show_liter() %> </td>
                                                         <td> Ar <%= pe.get_price_with_exchange(null)  %></td>
                                                     </tr>
                                                 <% } } %>

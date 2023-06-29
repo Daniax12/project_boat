@@ -71,7 +71,8 @@
                                                     <th> Quai </th>
                                                     <th> Heure debut </th>
                                                     <th> Heure fin </th>
-                                                    <th> Status validation </th>
+                                                    <th> Remarque </th>
+                                                    <th> Status </th>
                                                     <th> Action  </th>
                                                 </tr>
                                             </thead>
@@ -97,7 +98,7 @@
                                                             <% } else {  %>
                                                                 <td> <%= pe.getEnd_prestation()  %> </td>
                                                             <% } %>
-                                                        
+                                                        <td> <%= pe.show_liter() %> </td>
                                                         <td> <i class="<%= pe.get_font_etat() %>"></i> </td>
                                                         <td>
                                                             <a href="Validate_prestation_ctrl?id_pe=<%= pe.getId_prestation_escale() %>&&escale_id=<%= escale.getId_escale() %>">
@@ -163,9 +164,7 @@
              <% } %>
              
              <!-- CHANGING QUAI  -->
-                    
-            <!-- ADDING NEW PRESTATION TO ESCALE / MODAL --> 
-            <div class="modal fade" id="staticBackdropChangeDock" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+             <div class="modal fade" id="staticBackdropChangeDock" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -201,6 +200,67 @@
                                         <input id="cc-pament" name="debut_hour" type="datetime-local" class="form-control" aria-required="true" aria-invalid="false">
                                     </div>
                                 </div>
+                                <input type="hidden" name="escale_id" value="<%= escale.getId_escale() %>">
+                                <input type="hidden" name="old_dock" value="<%= dock.getId_dock() %>">
+                                 <input type="submit" value="Enregistrer" class="btn btn-primary">
+                            </form>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <%-- IF THERE IS FOOTER --%>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    
+            <!-- ADDING NEW PRESTATION TO ESCALE / MODAL --> 
+            <div class="modal fade" id="staticBackdropAddPrestation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title text-center" id="staticBackdropLabel">
+                                Ajouter prestation  <%-- Modal header : Getting the specific product --%>
+                            </h3>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>  <%-- Closing button the modal --%>
+                        </div>
+
+                        <div class="modal-body text-center">
+                            <form action="Add_prestation_ctrl" method="get" enctype="multipart/form-data">
+                                <%-- CHOIX PRESTATION --%>
+                                <div class="row form-group">
+                                    <div class="col col-md-5">
+                                        <label for="selectSm" class=" form-control-label">Chosir prestation :</label>
+                                    </div>
+                                    <div class="col-12 col-md-7">
+                                        <select name="prestation_id" id="SelectLm" class="form-control-sm form-control">
+                                            <% for(Prestation  p : prestations){ %>
+                                                <option value="<%= p.getId_prestation() %>">
+                                                   <%= p.getName_prestation() %>
+                                                </option>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                </div>
+                                        
+                                <div class="row form-group" id="date_presta">
+                                    <div class="col col-md-5">
+                                        <label for="selectSm" class=" form-control-label"> Heure debut : </label>
+                                    </div>
+                                    <div class="col-12 col-md-7">
+                                        <input id="cc-pament" name="debut_prestation" type="datetime-local" class="form-control" aria-required="true" aria-invalid="false">
+                                    </div>
+                                </div>
+                                        
+                                <div class="row form-group">
+                                    <div class="col col-md-5">
+                                        <label for="selectSm" class=" form-control-label"> Besoin en eau : </label>
+                                    </div>
+                                    <div class="col-12 col-md-7">
+                                        <input id="cc-pament" name="eau" type="number" class="form-control" aria-required="true" aria-invalid="false">
+                                    </div>
+                                </div>
+                                        
+                                        
+                                        
                                 <input type="hidden" name="escale_id" value="<%= escale.getId_escale() %>">
                                 <input type="hidden" name="dock_id" value="<%= dock.getId_dock() %>">
                                  <input type="submit" value="Enregistrer" class="btn btn-primary">
