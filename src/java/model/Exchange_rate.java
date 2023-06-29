@@ -9,6 +9,8 @@ import annoted.TableAnnotation;
 import database.ConnectionBase;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import mapping.BddObject;
 import utilities.Ordering;
@@ -38,6 +40,42 @@ public class Exchange_rate {
     public String name_monnaie;
     
     
+     // Get latest value of a monnaie exchange
+    public static float value_monnaie(String id_monnaie, Timestamp reference, Connection connection) throws Exception{
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        try {
+            float result = 0;
+            Exchange_rate ex = new Exchange_rate();
+            ex.setId_monnaie1(id_monnaie);
+            List<Exchange_rate> test = new ArrayList<>();
+            
+            List<Exchange_rate> all = BddObject.findByOrder("v_monnaie_rate", ex, "date_exchange", Ordering.DESC, connection);
+            if(all.size() > 0){
+                for(int i = 0; i < all.size(); i++){
+                    if(all.get(i).getDate_exchange().before(reference) == true){
+                        test.add(all.get(i));
+                    }
+                }
+                if(test.size() > 0) return test.get(0).getValue_rate();
+                else return 0;
+            }
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on getting the rate exchange of a monnaie. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+        
+    }
+    
+    
     // Get latest value of a monnaie exchange
     public static float value_monnaie(String id_monnaie, Connection connection) throws Exception{
         boolean isOpen = false;
@@ -63,7 +101,6 @@ public class Exchange_rate {
         } finally{
             if(isOpen == false) connection.close();
         }
-        
     }
     
     

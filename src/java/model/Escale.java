@@ -136,7 +136,7 @@ public class Escale {
     
     
     // INSERTION D'UNE NOUVELLE ESCALE
-    public void insert_first_escale(String id_dock, Utilisateur user, Connection connection) throws Exception {
+    public void insert_first_escale(String id_dock, String debut_time, Utilisateur user, Connection connection) throws Exception {
         if(user.can_add_prestation() == false){
             throw new Exception("Not allowed to make this action");
         }
@@ -148,7 +148,7 @@ public class Escale {
             isOpen = true;
         }
         try {
-            java.sql.Timestamp now = new Timestamp(System.currentTimeMillis());             // Enregistrement date
+            java.sql.Timestamp now = DateUtil.string_to_timestamp(debut_time);             // Enregistrement date
             String my_id = BddObject.insertInDatabase(this, connection);                    // Insertion de l'escale
             History history_escale = new History(user.getId_utilisateur(), "A1", now, my_id);   // HIstory escale
             BddObject.insertInDatabase(history_escale, connection);

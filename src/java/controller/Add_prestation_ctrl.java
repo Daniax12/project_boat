@@ -66,10 +66,11 @@ public class Add_prestation_ctrl extends HttpServlet {
         String current_dock = request.getParameter("dock_id");
         String prestation_id = request.getParameter("prestation_id");
         String debut_hour = request.getParameter("debut_prestation");
+        String notice = request.getParameter("eau");
         HttpSession session = request.getSession();
         Utilisateur user = (Utilisateur) session.getAttribute("user");
         try {
-            Prestation_escale.add_new_prestation_escale(escale_id, prestation_id, current_dock, user, debut_hour, debut_hour, null);
+            Prestation_escale.add_new_prestation_escale(escale_id, prestation_id, current_dock, notice, user, debut_hour, debut_hour, null);
             out.println("mety leleh");
         } catch (Exception e) {
             request.setAttribute("error", e.getMessage());

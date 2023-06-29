@@ -43,6 +43,9 @@ public class Prestation_escale {
     @ColumnField(column = "status_prestation")
     private Integer status_prestation;
     
+    @ColumnField(column = "notice")
+    private Float notice;
+    
     // --------------- PRICING DETAILS ---------------------------------------
     
     // Getting the prestation with regards to the exchange
@@ -57,6 +60,7 @@ public class Prestation_escale {
         
         try {
             float value = this.get_price_tarif_no_exchange(connection);
+//            float value = this.get_price_no_exchange(connection);
             String id_monnaie = "";
             if(this.pe_escale(connection).escale_boat(connection).getId_nationality().equals("NAT_1") == true){
                 id_monnaie = "m1";
@@ -64,7 +68,8 @@ public class Prestation_escale {
                 id_monnaie = "m2";
             }
             
-            float rate = Exchange_rate.value_monnaie(id_monnaie, connection);
+           // float rate = Exchange_rate.value_monnaie(id_monnaie, connection);
+            float rate = Exchange_rate.value_monnaie(id_monnaie, this.getEnd_prestation(), connection);
             return rate * value;
            
         } catch (Exception e) {
@@ -75,8 +80,64 @@ public class Prestation_escale {
         }
     }
     
-    // Getting the prestation tarif without considering the exchange rate
+    // Getting the prestation tarif without considering the exchange rate // Method 2 - CONSIDERING 15 MIN
     public float get_price_tarif_no_exchange(Connection connection) throws Exception{
+        if(this.getEnd_prestation() == null) return 0;
+        boolean isOpen = false;
+        ConnectionBase connectionBase = new ConnectionBase();
+        if(connection == null){
+            connection = connectionBase.dbConnect();     // If it is null, creating connection
+        }else{
+            isOpen = true;
+        }
+        try {
+            float result = 0;
+            Prestation prestation = this.pe_prestation(connection);
+            Boat the_boat = this.pe_escale(connection).escale_boat(connection);
+            List<List<Timestamp>> date_cut = this.cut_pe_date();
+            
+            // Eau douce
+            if(this.getId_prestation().equals("PRES_3") == true){
+                List<Tarif_prestation> tarification = Tarif_prestation.get_specific_tarif(this.getId_dock(), the_boat.getId_boat_type(), the_boat.getId_nationality(), this.getId_prestation(), prestation.getDock_calculation(), prestation.getBoat_calculation(), connection); // Get the menu
+                if(tarification.size() > 0) return tarification.get(0).getMontant_prestation() * this.getNotice();
+            }
+            
+            // Other
+            List<Tranche_hour> th = BddObject.find("tranche_hour", new Tranche_hour(), connection);     // Get all tranche hour
+            for(int i = 0; i < date_cut.size(); i++){
+                Timestamp debut = date_cut.get(i).get(0);
+                Timestamp end = date_cut.get(i).get(1);
+                
+                for(int k = 0; k < th.size(); k++){
+                    Timestamp bornInf = DateUtil.add_time_data_in_timestamp(debut, th.get(k).getDebut_tranche());
+                    Timestamp bornSup = DateUtil.add_time_data_in_timestamp(debut, th.get(k).getEnd_tranche());
+                    
+                    int difference_minute = DateUtil.duration_minutes_two_intervalle(debut, end, bornInf, bornSup);
+                    
+                    // Get the tarification considering the tranche_hour
+                    List<Tarif_prestation> temp_menu = Tarif_prestation.get_specific_tarif(this.getId_dock(), the_boat.getId_boat_type(), the_boat.getId_nationality(), this.getId_prestation(), th.get(k).getId_tranche_hour(), prestation.getDock_calculation(), prestation.getBoat_calculation(), connection);
+                    
+                    for(int p = 0; p < temp_menu.size()-1 ; p++){
+                        if(difference_minute < prestation.getTranche_min()) break;
+                        result += temp_menu.get(p).getMontant_prestation();
+                        difference_minute -= prestation.getTranche_min();
+                    }
+                    if(difference_minute > 0 ){
+                        result += temp_menu.get(temp_menu.size() - 1).getMontant_prestation() * difference_minute;         // RESTE
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  new Exception("Error on getting the prestation tarif of an escale, without considering exchange rate. Error : "+e.getMessage());
+        } finally{
+            if(isOpen == false) connection.close();
+        }
+    }
+    
+    // Getting the prestation tarif without considering the exchange rate // method 1 TSISY ANLE 15 Min
+    public float get_price_no_exchange(Connection connection) throws Exception{
         if(this.getEnd_prestation() == null) return 0;
         boolean isOpen = false;
         ConnectionBase connectionBase = new ConnectionBase();
@@ -93,7 +154,7 @@ public class Prestation_escale {
             
             // Refering with the cession d'eau which do not have dock_calculation or boat_calculation -> Return the first montant
             if(tarification.size() == 1 && tarification.get(0).getId_boat_type() == null && tarification.get(0).getId_dock() == null){
-                return tarification.get(0).getMontant_prestation();
+                return tarification.get(0).getMontant_prestation() * this.getNotice();
             }
             
             List<List<Timestamp>> date_cut = this.cut_pe_date();                                                                                                                            // Get all date cut
@@ -120,7 +181,7 @@ public class Prestation_escale {
         }
     }
     
-    // Cutting the timestamp debut and end of the prestation escale into LIst of debut/end
+    // Cutting the timestamp debut and end of the prestation escale into LIst of debut/end and same date
     public List<List<Timestamp>> cut_pe_date(){
         List<List<Timestamp>> result = new ArrayList<>();
         
@@ -280,7 +341,7 @@ public class Prestation_escale {
             Prestation_escale pe = new Prestation_escale();
             pe.setId_prestation_escale(id_pe);
             pe = BddObject.findById("prestation_escale", pe, connection);
-            
+            if(pe.getDebut_prestation().after(time_end)) throw new Exception("Retour zany");
             pe.setEnd_prestation(time_end);
             BddObject.updatingObject(pe, connection);
          
@@ -337,7 +398,7 @@ public class Prestation_escale {
     
     
     // INSERTION D'UNE NOUVELLE PRESTATION
-    public static void add_new_prestation_escale(String escale_id ,String id_prestation, String iddock, Utilisateur user, String date_debut, String date_end, Connection connection) throws Exception{
+    public static void add_new_prestation_escale(String escale_id ,String id_prestation, String iddock, String eau, Utilisateur user, String date_debut, String date_end, Connection connection) throws Exception{
         if(user.can_add_prestation() == false){
             throw new Exception("Not allowed to make this action");
         } 
@@ -349,10 +410,11 @@ public class Prestation_escale {
             isOpen = true;
         }
         try {
+            Float litre = Float.valueOf(eau);
             Escale escale = new Escale();
             escale.setId_escale(escale_id);
             escale = BddObject.findById("escale", escale, connection);
-            if(escale.is_invoice_valide(connection) == true){
+            if(escale.escale_facture(connection) != null && escale.is_invoice_valide(connection) == true){
                 throw new Exception("Can not modify an escale where invoice is already valid");
             }
             
@@ -365,6 +427,7 @@ public class Prestation_escale {
                 time_end = null;
             }
             Prestation_escale presta = new Prestation_escale(escale_id,  id_prestation, iddock, time_debut, time_end, 1);
+            presta.setNotice(litre);    // RANO
             String presta_id = BddObject.insertInDatabase(presta, connection);
             History history_prestation = new History(user.getId_utilisateur(), "A2", time_debut, presta_id);
             BddObject.insertInDatabase(history_prestation, connection);
@@ -390,6 +453,7 @@ public class Prestation_escale {
         }
         try {
             Prestation_escale presta = new Prestation_escale(escale.getId_escale(), id_prestation, dock.getId_dock(), date_debut, date_end, 1);
+            presta.setNotice(0.0f);
             String presta_id = BddObject.insertInDatabase(presta, connection);
             History history_prestation = new History(user.getId_utilisateur(), "A2", date_debut, presta_id);
             BddObject.insertInDatabase(history_prestation, connection);
@@ -550,4 +614,19 @@ public class Prestation_escale {
         }
         return result;
     }
+
+    public Float getNotice() {
+        return notice;
+    }
+
+    public void setNotice(Float notice) {
+        this.notice = notice;
+    }
+    
+    public String show_liter(){
+        if(this.getNotice() == 0 || this.getId_prestation().equals("PRES_3") == false) return "";
+        else return this.getNotice().toString() + " Litres";
+    }
+    
+    
 }
